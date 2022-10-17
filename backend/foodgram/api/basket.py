@@ -2,7 +2,7 @@ import io
 
 from django.db.models import Sum
 from django.db.utils import IntegrityError
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -37,7 +37,7 @@ class BasketViewSet(viewsets.ViewSet):
             {'Ошибка удаления, рецепт не в корзине'},
             status=status.HTTP_400_BAD_REQUEST)
 
-    def get_shop_list(self, request):
+    def get_shop_list_old(self, request):
         pdf = io.BytesIO()
         gen_pdf = canvas.Canvas(pdf)
         pdfmetrics.registerFont(TTFont('Calibri', 'Calibri.ttf'))
@@ -68,3 +68,37 @@ class BasketViewSet(viewsets.ViewSet):
         pdf.seek(0)
 
         return FileResponse(pdf, as_attachment=True, filename='shop-list.pdf')
+
+    def get_shop_list(self, request):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = (
+            'attachment; filename="shop_list.pdf"')
+        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
+
+        p = canvas.Canvas(response)
+
+        ingredients = RecipeIngredient.objects.filter(
+            recipe__shopping__user=request.user
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount')).order_by()
+
+        p.setFont('Arial', 20)
+        p.drawString(200, 800, 'Список покупок:')
+
+        p.setFont('Arial', 14)
+        hight_position = 760
+        for ingredient in ingredients:
+            p.drawString(
+                100,
+                hight_position,
+                f'{ingredient["ingredient__name"]} - '
+                f'{ingredient["amount"]} '
+                f'{ingredient["ingredient__measurement_unit"]}.'
+            )
+            hight_position -= 20
+
+        p.showPage()
+        p.save()
+        return response

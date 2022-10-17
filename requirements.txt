@@ -9,3 +9,4 @@ isort==5.10.1
 pep8-naming==0.13.2
 Pillow==9.2.0
 python-dotenv==0.21.0
+reportlab==3.6.11
