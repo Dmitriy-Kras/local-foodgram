@@ -1,5 +1,6 @@
 import io
 
+from django.conf import settings
 from django.db.models import Sum
 from django.db.utils import IntegrityError
 from django.http import FileResponse, HttpResponse
@@ -70,11 +71,11 @@ class BasketViewSet(viewsets.ViewSet):
         return FileResponse(pdf, as_attachment=True, filename='shop-list.pdf')
 
     def get_shop_list(self, request):
+        path_to_font = str(settings.BASE_DIR) + '/library/calibri.ttf'
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = (
             'attachment; filename="shop_list.pdf"')
-        pdfmetrics.registerFont(TTFont('Arial', 'Arial.ttf'))
-
+        pdfmetrics.registerFont(TTFont('dej', path_to_font))
         p = canvas.Canvas(response)
 
         ingredients = RecipeIngredient.objects.filter(
@@ -84,10 +85,9 @@ class BasketViewSet(viewsets.ViewSet):
             'ingredient__measurement_unit'
         ).annotate(amount=Sum('amount')).order_by()
 
-        p.setFont('Arial', 20)
+        p.setFont('dej', 20)
         p.drawString(200, 800, 'Список покупок:')
-
-        p.setFont('Arial', 14)
+        p.setFont('dej', 14)
         hight_position = 760
         for ingredient in ingredients:
             p.drawString(
@@ -98,7 +98,6 @@ class BasketViewSet(viewsets.ViewSet):
                 f'{ingredient["ingredient__measurement_unit"]}.'
             )
             hight_position -= 20
-
         p.showPage()
         p.save()
         return response

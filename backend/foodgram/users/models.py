@@ -10,7 +10,8 @@ class User(AbstractUser):
         verbose_name='Логин',
         max_length=150,
         unique=True,
-        validators=[validate_name]
+        validators=[validate_name],
+        help_text='login'
     )
     email = models.EmailField(
         _('email address'),
