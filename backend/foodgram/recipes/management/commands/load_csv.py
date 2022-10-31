@@ -17,6 +17,8 @@ class Command(BaseCommand):
             for row in DictReader(
                 open('./data/ingredients.csv', encoding="utf-8")
             ):
+                if Ingredient.objects.filter(name=row['name']).exists():
+                    continue
                 ingredient = Ingredient(
                     name=row['name'], measurement_unit=row['unit'])
                 ingredient.save()

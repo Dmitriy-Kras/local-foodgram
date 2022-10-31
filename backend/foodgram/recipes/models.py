@@ -1,4 +1,4 @@
-from django.core.validators import MinValueValidator
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 
 from .validators import validate_slug
@@ -68,7 +68,7 @@ class Recipe(models.Model):
     )
     text = models.TextField(verbose_name='Текстовое описание')
     cooking_time = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
+        validators=[MinValueValidator(1), MaxValueValidator(1500)],
         verbose_name='Время приготовления в минутах'
     )
     tags = models.ManyToManyField(
@@ -107,7 +107,7 @@ class RecipeIngredient(models.Model):
         verbose_name='Игридиент'
     )
     amount = models.PositiveIntegerField(
-        validators=[MinValueValidator(1)],
+        validators=[MinValueValidator(1), MaxValueValidator(10000)],
         verbose_name='Количество'
     )
 
@@ -135,8 +135,8 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        verbose_name = 'Избранный рецепт'
-        verbose_name_plural = 'Избранные рецепты'
+        verbose_name = 'Рецепт в избранном у пользователя'
+        verbose_name_plural = 'Рецепт в избранном у пользователей'
         constraints = [
             models.UniqueConstraint(fields=['user', 'recipe'],
                                     name='unique_relation_favorite')

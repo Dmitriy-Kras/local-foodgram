@@ -10,8 +10,7 @@ class User(AbstractUser):
         verbose_name='Логин',
         max_length=150,
         unique=True,
-        validators=[validate_name],
-        help_text='login'
+        validators=[validate_name]
     )
     email = models.EmailField(
         _('email address'),
@@ -49,5 +48,9 @@ class Subscription(models.Model):
         verbose_name_plural = 'Подписки на автора'
         constraints = [
             models.UniqueConstraint(fields=['user', 'author'],
-                                    name='unique_relation_subscription')
+                                    name='unique_relation_subscription'),
+            # models.CheckConstraint(
+            #     check=~models.Q(user=models.F('author')),
+            #     name='users_cannot_subscribe_to_themselves'
+            # ),
         ]

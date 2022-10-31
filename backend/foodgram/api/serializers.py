@@ -1,5 +1,6 @@
 import base64
 
+from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile
 from rest_framework import serializers
 
@@ -79,6 +80,13 @@ class RecipeSerializer(serializers.ModelSerializer):
         if not request or request.user.is_anonymous:
             return False
         return obj.shopping.filter(user=request.user).exists()
+
+    def validate(self, attrs):
+        for ingredient in self.initial_data['ingredients']:
+            amount = int(ingredient['amount'])
+            if amount < 1 or amount > 10000:
+                raise ValidationError('неправильное количество')
+        return super().validate(attrs)
 
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
